@@ -1,0 +1,156 @@
+
+
+对于仓库和私服nexus：
+第六章和第九章：
+
+发布到私服：P85
+mvn clean deploy
+
+配置私服：  下载和上传私服：
+
+1.下载私服：
+第一种：单个项目pom起作用：
+<project>
+...
+<!-- 仓库地址 -->
+<repositories>
+	<repository>
+		<id>nexus</id>
+		<name>Local Nexus</name>
+		<url>http://localhost:8081/nexus/content/groups/public</url>
+		<releases><enabled>true</enabled></releases>
+		<snapshots><enabled>true</enabled></snapshots>
+	</repository>
+</repositories>
+<!-- 插件地址 -->
+<pluginRepositories>
+	<pluginRepository>
+		<id>nexus</id>
+		<name>Local Nexus</name>
+		<url>http://localhost:8081/nexus/content/groups/public</url>
+		<releases><enabled>true</enabled></releases>
+		<snapshots><enabled>true</enabled></snapshots>
+	</pluginRepository>
+</pluginRepositories>
+...
+</project>
+
+第二种：所有项目setting.xml配置，但会不时的访问中央仓库 central ：
+<setting>
+...
+<profiles>
+<profile>
+      <id>nexus</id>
+      <repositories>
+        <repository>
+            <id>nexus-group</id>
+            <name>local private nexus</name>
+            <url>http://localhost:8081/nexus/content/groups/public/</url>
+            <releases><enabled>true</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
+        </repository>        
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+            <id>nexus-group</id>
+            <name>local private nexus</name>
+            <url>http://localhost:8081/nexus/content/groups/public/</url>
+            <releases><enabled>true</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
+        </pluginRepository>
+       </pluginRepositories>
+    </profile>
+  </profiles>
+  
+  <activeProfiles>
+    <activeProfile>nexus</activeProfile>
+  </activeProfiles>
+</profiles>
+...
+</setting>
+第三种：配置镜像让maven只使用私服,
+但若是仓库需要验证的话就要用添加相同名称的<server>：
+<setting>
+...
+ <mirrors> 
+    <mirror>
+        <id>nest</id>
+        <mirrorOf>*</mirrorOf>
+        <name>Nexus osc</name>
+        <url>http://127.0.0.1:8081/nexus/content/groups/public/</url>
+    </mirror>
+  </mirrors>
+<profiles>
+<profile>
+      <id>nexus</id>
+      <repositories>
+        <repository>
+            <id>central</id>
+            <name>local private nexus</name>
+            <url>http://central</url>
+            <releases><enabled>true</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
+        </repository>        
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <name>local private nexus</name>
+            <url>http://central</url>
+            <releases><enabled>true</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
+        </pluginRepository>
+       </pluginRepositories>
+    </profile>
+  </profiles>
+  
+  <activeProfiles>
+    <activeProfile>nexus</activeProfile>
+  </activeProfiles>
+</profiles>
+...
+</setting>
+
+
+
+2.上传私服：
+步骤一、
+项目POM中：
+<project>
+...
+<distributionManagement>
+        <repository>
+            <id>nexus-releases</id>
+            <name>Nexus Releases Repository</name>
+            <url>http://localhost:8081/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>nexus-snapshots</id>
+            <name>Nexus Snapshot Repository</name>
+            <url>http://localhost:8081/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+...
+</project>
+步骤二、
+setting.xml的验证配置：
+<setting>
+...
+<servers>
+<server>
+  <id>nexus-snapshots</id>
+  <username>admin</username>
+  <password>admin123</password>
+</server>
+<server>
+  <id>nexus-releases</id>
+  <username>admin</username>
+  <password>admin123</password>
+</server>
+</servers>
+...
+</setting>
+
+
+
+
